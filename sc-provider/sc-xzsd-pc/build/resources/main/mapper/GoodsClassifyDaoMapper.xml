@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.goodsclassify.dao.GoodsClassifyDao">
+    <!--统计商品数量-->
+    <select id="countGoodsClassify" parameterType="com.goodsclassify.entity.GoodsClassifyInfo" resultType="int">
+        select count(classification_name)
+        from commodityclassification
+        where id_delete = 0
+        and classification_name = #{classifyName}
+    </select>
+
+    <!--新增商品-->
+    <insert id="addGoodsClassify" parameterType="com.goodsclassify.entity.GoodsClassifyInfo">
+        insert into commodityclassification
+        (	classification_number,
+        	classification_name,
+	        fatherclassification,
+	        remarks,
+	        id_delete,
+	        create_time,
+	        create_user,
+        	ediition)
+        values
+         (
+         	#{classifyId},
+	        #{classifyName},
+	        #{classifyParent},
+	        #{classifyComment},
+        	#{idDelete},
+	        now(),
+	        #{createUser},
+        	#{version})
+    </insert>
+	<!--商品分类列表-->
+	<select id="listAllGoodsClassify" parameterType="com.goodsclassify.entity.GoodsClassifyInfo" resultType="com.goodsclassify.entity.GoodsClassifyInfo">
+		select
+		classification_number		classifyId,
+		classification_name			classifyName,
+		ediition					version
+		from commodityclassification
+		where id_delete = 0
+		order by create_time desc
+	</select>
+	<!--修改商品分类信息-->
+	<update id="updateGoodsClassify" parameterType="com.goodsclassify.entity.GoodsClassifyInfo">
+        update commodityclassification
+        set
+        	classification_number 		= #{classifyId},
+	        classification_name 		= #{classifyName},
+        	remarks						= #{classifyComment},
+        	supdate_time				= now(),
+	        supdate_user				= #{classifyId},
+        	ediition					= ediition + 1
+        where classification_number		= #{classifyId}
+          and ediition					= #{version}
+    </update>
+	<!--删除商品分类-->
+	<update id="deleteGoodsClassify" parameterType="com.goodsclassify.entity.GoodsClassifyInfo">
+		update commodityclassification
+		set
+		id_delete = 1,
+		supdate_time = now(),
+		supdate_user   = #{userId},
+		ediition = ediition + 1
+		where classification_number = #{classifyId}
+	</update>
+</mapper>

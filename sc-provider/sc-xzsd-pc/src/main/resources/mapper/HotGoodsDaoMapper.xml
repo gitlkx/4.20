@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hotGoods.dao.HotGoodsDao">
+
+
+    <!--统计热门商品数量-->
+    <select id="countGoods" parameterType="com.hotGoods.entity.HotGoodsInfo" resultType="int">
+        select count(commodity_Id)
+        from hotcommodity
+        where id_delete = 0
+        and commodity_Id = #{goodsId}
+    </select>
+
+    <!--新增热门商品-->
+    <insert id="addGoods" parameterType="com.hotGoods.entity.HotGoodsInfo">
+        insert into hotcommodity
+        (	hot_commodity_id,
+	        commodity_Id,
+	        sort,
+	        display_quantity,
+	        id_delete,
+	        create_time,
+	        create_user,
+	        supdate_time,
+	        supdate_user,
+        	ediition)
+        values
+         (	#{hotGoodsId},
+	        #{goodsId},
+	        #{hotGoodsNum},
+        	#{hotGoodsShowNum},
+	        #{idDelete},
+	        now(),
+	        #{createUser},
+	        #{supdateTime},
+	        #{supdateUser},
+        	#{version})
+    </insert>
+	<!--查询热门商品详情-->
+	<select id="getHotGoods" parameterType="java.lang.String" resultType="com.hotGoods.entity.HotGoodsInfo">
+        select
+		b.display_quantity			hotGoodsNum,
+		b.commodity_Id				goodsId,
+		a.commodity_name			goodsName,
+		b.hot_commodity_id			hotGoodsId,
+		b.ediition					version
+        from commoditymanagement a,hotcommodity b
+        where hot_commodity_id = #{hotGoodsId}
+        and b.commodity_Id = a.commodity_id
+    </select>
+	<!--分页查询热门商品接口-->
+	<select id="listHotGoods" parameterType="com.hotGoods.entity.HotGoodsInfo" resultType="com.hotGoods.entity.HotGoodsInfo">
+		select
+		b.sort				hotGoodsNum,
+		b.commodity_Id		goodsId,
+		a.commodity_name	goodsName,
+		a.selling_price		goodsPrice,
+		a.commodity_introduce					goodsDescribe,
+		b.hot_commodity_id	hotGoodsId,
+		b.ediition			version
+		from commoditymanagement a,hotcommodity b
+		where b.id_delete = 0
+		and b.commodity_Id = a.commodity_id
+		<if test="goodsName != null and goodsName != ''">
+			and a.commodity_name like concat('%', #{goodsName}, '%')
+		</if>
+		<if test="goodsId != null and goodsId != ''">
+			and b.commodity_Id like concat('%', #{goodsId}, '%')
+		</if>
+		order by b.create_time desc
+	</select>
+
+	<!--修改热门商品信息-->
+	<update id="updateHotGoods" parameterType="com.hotGoods.entity.HotGoodsInfo">
+        update hotcommodity
+        set
+        	hot_commodity_id 	= #{hotGoodsId},
+	        commodity_id 		= #{goodsId},
+	        sort 				= #{hotGoodsNum},
+            ediition			= ediition + 1
+        where hot_commodity_id	= #{hotGoodsId}
+          and ediition			= #{version}
+    </update>
+	<!--查询热门商品展示数量-->
+	<select id="getHotGoodsShowNum" parameterType="java.lang.String" resultType="com.hotGoods.entity.HotGoodsInfo">
+        select
+		display_quantity		hotGoodsShowNum
+        from hotcommodity
+        where id_delete = 0
+    </select>
+	<!--修改热门商品数量展示-->
+	<update id="updateHotGoodsShowNum" parameterType="com.hotGoods.entity.HotGoodsInfo">
+		update hotcommodity
+		set
+		display_quantity		= #{hotGoodsShowNum}
+		where ediition			= #{version}
+	</update>
+	<!--删除热门商品-->
+	<update id="deleteHotGoods" parameterType="com.hotGoods.entity.HotGoodsInfo">
+		update hotcommodity
+		set
+		id_delete 		= 1,
+		supdate_time 	= now(),
+		supdate_user    = #{userId},
+		ediition = ediition + 1
+		where commodity_Id in
+		<foreach item="item" index="index" collection="listHotGoods" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+</mapper>

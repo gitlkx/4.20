@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.slideshowhome.dao.SlideshowHomeDao">
+    <!--统计商品数量-->
+    <select id="countGoodsSlideshowHome" parameterType="com.slideshowhome.entity.SlideshowHomeInfo" resultType="int">
+        select count(commodity)
+        from rotationchart
+        where id_delete = 0
+        and commodity = #{goodsId}
+    </select>
+
+    <!--新增商品-->
+    <insert id="addSlideshowHome" parameterType="com.slideshowhome.entity.SlideshowHomeInfo">
+        insert into rotationchart
+        (	code,
+            sort,
+        	picture_path,
+	        start_time,
+	        end_time,
+	        commodity,
+	        state,
+	        create_time,
+	        create_user,
+	        edition,
+	        id_delete)
+        values
+         (
+            #{slideshowId},
+         	#{slideshowNum},
+	        #{imagePath},
+	        #{startTime},
+	        #{endTime},
+        	#{goodsId},
+        	#{slideshowStateId},
+        	now(),
+        	#{creator},
+        	#{version},
+        	#{deleteTag})
+    </insert>
+	<!--删除商品-->
+	<update id="deleteSlideshowHome" parameterType="com.slideshowhome.entity.SlideshowHomeInfo">
+		update rotationchart
+		set
+		id_delete = 1,
+		supdate_time = now(),
+		supdate_user   = #{userId},
+		edition = edition + 1
+		where code in
+		<foreach item="item" index="index" collection="listSlideshowHome" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	<!--分页查询轮播图-->
+	<select id="listSlideshowHomeByPage" parameterType="com.slideshowhome.entity.SlideshowHomeInfo" resultType="com.slideshowhome.entity.SlideshowHomeInfo">
+		select
+		code						slideshowId,
+		sort						slideshowNum,
+		picture_path				imagePath,
+		start_time					startTime,
+		end_time					endTime,
+		state						slideshowStateId,
+		edition						version
+		from rotationchart
+		where id_delete = 0
+		and state like concat('%', #{slideshowStateId}, '%')
+		order by create_time desc
+	</select>
+	<!--轮播图上下架-->
+	<update id="updateSlideshowHomeState" parameterType="com.slideshowhome.entity.SlideshowHomeInfo">
+		update rotationchart
+		set
+		<if test="slideshowStateId == 0">
+			state		= 0
+		</if>
+		<if test="slideshowStateId == 1">
+			state		= 1
+		</if>
+		where code in
+		<foreach item="item" index="index" collection="listSlideshowHomeState" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+</mapper>

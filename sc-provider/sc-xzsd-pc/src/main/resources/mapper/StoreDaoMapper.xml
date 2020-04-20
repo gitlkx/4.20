@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.store.dao.StoreDao">
+
+
+    <!--统计门店数量-->
+    <select id="countStore" parameterType="com.store.entity.StoreInfo" resultType="int">
+        select count(shop_number)
+        from storeinformation
+        where id_delete = 0
+        and shop_number = #{storeId}
+    </select>
+
+    <!--新增门店-->
+    <insert id="addStore" parameterType="com.store.entity.StoreInfo">
+        insert into storeinformation
+        (	name_of_store,
+	        shopowner_phone_number,
+	        shopowner_user_id,
+	        business_license,
+	        province,
+	        city,
+	        region,
+	        detailed_address,
+        	ediition,
+        	create_time,
+        	create_user,
+        	supdate_time,
+        	supdate_user,
+        	shop_number,
+        	id_delete)
+        values
+         (	#{storeName},
+	        #{phone},
+	        #{userId},
+        	#{businessCode},
+	        #{provinceId},
+	        #{cityId},
+	        #{areaId},
+	        #{address},
+	        #{version},
+	        now(),
+	        #{createUser},
+	        #{supdateTime},
+	        #{supdateUser},
+	        #{storeId},
+	        #{idDelete})
+    </insert>
+	<!--查询热门商品详情--><!--未完待续........-->
+	<select id="getStore" parameterType="java.lang.String" resultType="com.store.entity.StoreInfo">
+        select
+		a.name_of_store					storeName,
+		a.shopowner_phone_number		phone,
+		a.shopowner_user_id				userId,
+		a.business_license				businessCode,
+		b.provincexxxx					provinceName,
+		b.cityxxxxxx					cityName,
+		b.regionxxxxxxx					areaName,
+		a.detailed_address				address,
+		a.shop_number					storeId,
+		a.ediition						version
+        from storeinformation a,		hotcommodity b
+        where shop_number 				= #{storeId}
+        and b.commodity_Id 				= a.commodity_id
+    </select>
+	<!--分页查询门店接口-->
+	<select id="listStores" parameterType="com.store.entity.StoreInfo" resultType="com.store.entity.StoreInfo">
+		select
+		a.shop_number				storeId,
+		a.name_of_store				storeName,
+		a.shopowner_phone_number	phone,
+		a.detailed_address			address,
+		b.user_name					userName,
+		a.business_license			inviteCode,
+		b.user_acct					userAcct
+		from storeinformation a,	t_sys_user b
+		where a.id_delete = 0
+		and b.user_code = a.shopowner_user_id
+		<if test="storeId != null and storeId != ''">
+			and a.shop_number like concat('%', #{storeId}, '%')
+		</if>
+		<if test="storeName != null and storeName != ''">
+			and a.name_of_store like concat('%', #{storeName}, '%')
+		</if>
+		<if test="userName != null and userName != ''">
+			and b.user_name like concat('%', #{userName}, '%')
+		</if>
+		<if test="provinceId != null and provinceId != ''">
+			and a.province like concat('%', #{provinceId}, '%')
+		</if>
+		<if test="cityId != null and cityId != ''">
+			and a.city like concat('%', #{cityId}, '%')
+		</if>
+		<if test="areaId != null and areaId != ''">
+			and a.region like concat('%', #{areaId}, '%')
+		</if>
+		order by a.create_time desc
+	</select>
+
+	<!--修改门店信息-->
+	<update id="updateStore" parameterType="com.store.entity.StoreInfo">
+        update storeinformation
+        set
+        	name_of_store	 			= #{storeName},
+	        shopowner_phone_number 		= #{phone},
+	        shopowner_user_id 			= #{userId},
+	        business_license 			= #{businessCode},
+	        province 					= #{provinceId},
+	        city 						= #{cityId},
+	        region 						= #{areaId},
+	        detailed_address 			= #{address},
+	        ediition					= ediition+1
+        where shop_number				= #{storeId}
+          and ediition					= #{version}
+    </update>
+	<!--删除热门商品-->
+	<update id="deleteStore" parameterType="com.store.entity.StoreInfo">
+		update storeinformation
+		set
+		id_delete 		= 1,
+		supdate_time 	= now(),
+		supdate_user    = #{userId},
+		ediition		 = ediition + 1
+		where shop_number in
+		<foreach item="item" index="index" collection="listStore" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+</mapper>

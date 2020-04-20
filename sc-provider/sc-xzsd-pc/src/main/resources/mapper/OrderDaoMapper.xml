@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.order.dao.OrderDao">
+    <!--订单信息详情-->
+    <select id="detailsGoods" parameterType="java.lang.String" resultType="com.order.entity.OrderInfo">
+        select
+		a.user_id		        userId,
+		a.order_id			    orderId,
+		b.commodity_id	        goodsId,
+		b.commodity_name        goodsName,
+		a.cart_goods_count	    goodsCount,
+		a.order_all_goods_count	theGoodsAllPrice,
+		b.selling_price			goodsPrice,
+		b.price	                goodsShelfCost
+        from orderdetails a,    commoditymanagement b
+        WHERE a.commodity_id = b.commodity_id
+        and a.order_id = #{orderId}
+    </select>
+	<!--订单分页列表-->
+	<select id="listOrders" parameterType="com.order.entity.OrderInfo" resultType="com.order.entity.OrderInfo">
+		select
+		a.order_id 				orderId,
+		a.order_all_goods_count orderAllCost,
+		a.order_status			orderStateId,
+		b.store_id				storeId,
+		b.user_name 			userName,
+		b.phone					phone,
+		a.ediition				storeId,
+		a.pay_time				payTime
+		from orderdetails a,t_sys_user b
+		where a.id_delete = 0
+		and a.user_id = b.user_code
+		<if test="userName != null and userName != ''">
+			and a.commodity_name like concat('%', #{userName}, '%')
+		</if>
+		<if test="phone != null and phone != ''">
+			and a.press like concat('%', #{phone}, '%')
+		</if>
+		<if test="orderId != null and orderId != ''">
+			and a.commodity_state like concat('%', #{orderId}, '%')
+		</if>
+		<if test="orderStateId != null and orderStateId != ''">
+			and a.author like concat('%', #{orderStateId}, '%')
+		</if>
+		<if test="payTimeStart != null and payTimeStart != ''">
+			and a.advertising_words like concat('%', #{payTimeStart}, '%')
+		</if>
+		<if test="payTimeEnd != null and payTimeEnd != ''">
+			and a.advertising_words like concat('%', #{payTimeEnd}, '%')
+		</if>
+		order by a.pay_time desc
+	</select>
+	<!--修改订单状态-->
+	<update id="updateOrderState" parameterType="com.order.entity.OrderInfo">
+		update orderdetails
+		set
+		<if test="orderStateId == 0">
+			order_status		= 0,
+		</if>
+		<if test="orderStateId == 1">
+			order_status		= 1,
+		</if>
+		<if test="orderStateId == 2">
+			order_status		= 2,
+		</if>
+		<if test="orderStateId == 3">
+			order_status		= 3,
+		</if>
+		<if test="orderStateId == 4">
+			order_status		= 4,
+		</if>
+		ediition = ediition+1
+		where order_id in
+		<foreach item="item" index="index" collection="listOrder" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		and ediition in
+		<foreach item="item" index="index" collection="listVersion" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+
+</mapper>
